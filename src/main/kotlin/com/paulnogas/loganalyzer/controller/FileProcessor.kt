@@ -1,43 +1,48 @@
 package com.paulnogas.loganalyzer.controller
 
-import com.paulnogas.loganalyzer.Patterns
-import com.paulnogas.loganalyzer.model.LineAndPattern
-import tornadofx.*
+import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERNS_PRIORITY_ORDER
+import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERN_NONE
+import com.paulnogas.loganalyzer.HighlightPattern
+import com.paulnogas.loganalyzer.model.LineAndHighlight
+import tornadofx.Controller
 import java.io.File
 
 class FileProcessor : Controller() {
-  private var rawList: List<LineAndPattern> = emptyList()
-  private var patternFilteredList: List<LineAndPattern> = emptyList()
+    private var rawList: List<LineAndHighlight> = emptyList()
+    private var filteredList: List<LineAndHighlight> = emptyList()
 
-  fun process(file: File): List<LineAndPattern> {
-    rawList = file.useLines { sequence ->
-      sequence.mapNotNull { line ->
-        parseLineOrNull(line)
-      }.toList()
+    fun process(file: File): List<LineAndHighlight> {
+        rawList = file.useLines { sequence ->
+            sequence.mapNotNull { line ->
+                parseLine(line)
+            }.toList()
+        }
+        return rawList
     }
-    return rawList
-  }
 
-  private fun parseLineOrNull(line: String): LineAndPattern? {
-    for (pattern in Patterns.values()) {
-      if (pattern.regEx.containsMatchIn(line)) {
-        return LineAndPattern(line, pattern)
-      }
+    private fun parseLine(line: String): LineAndHighlight? {
+        for (filter in HIGHLIGHT_PATTERNS_PRIORITY_ORDER) {
+            if (filter.regEx.containsMatchIn(line)) {
+                return LineAndHighlight(line, filter)
+            }
+        }
+        return LineAndHighlight(line, HIGHLIGHT_PATTERN_NONE)
     }
-    return null
-  }
 
-  fun filterPatternsAndSearch(allowedPatterns: Set<Patterns>, searchString: String): List<LineAndPattern> {
-    patternFilteredList = rawList.filter { it.pattern in allowedPatterns }
-    return filterSearch(searchString)
-  }
+    fun filterPatternsAndSearch(allowedPatternHighlightPatterns: Set<HighlightPattern>, searchString: String): List<LineAndHighlight> {
+        filteredList = when {
+            allowedPatternHighlightPatterns.isEmpty() -> rawList
+            else -> rawList.filter { it.highlightPattern in allowedPatternHighlightPatterns }
+        }
+        return filterSearch(searchString)
+    }
 
-  fun filterSearch(searchString: String): List<LineAndPattern> {
-    searchString.ifBlank {
-      return patternFilteredList
+    fun filterSearch(searchString: String): List<LineAndHighlight> {
+        searchString.ifBlank {
+            return filteredList
+        }
+        return filteredList.filter {
+            it.text.contains(searchString)
+        }
     }
-    return patternFilteredList.filter {
-      it.text.contains(searchString)
-    }
-  }
 }

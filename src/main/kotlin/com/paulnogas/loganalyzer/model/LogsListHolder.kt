@@ -1,9 +1,8 @@
 package com.paulnogas.loganalyzer.model
 
 import javafx.beans.property.SimpleListProperty
-import tornadofx.*
+import tornadofx.observable
 
-class LogsListHolder(logList: List<LineAndPattern>? = null) {
-  val logListProperty = SimpleListProperty<LineAndPattern>(this, "logList", logList?.observable())
-  var logList by logListProperty
+class LogsListHolder(logList: List<LineAndHighlight>? = null) {
+    val logListProperty = SimpleListProperty<LineAndHighlight>(this, "logList", logList?.observable())
 }
