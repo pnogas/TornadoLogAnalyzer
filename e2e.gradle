@@ -1,0 +1,30 @@
+sourceSets {
+    e2eTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    e2eTestImplementation.extendsFrom testImplementation
+    e2eTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+    e2eTestImplementation(
+            'org.testfx:testfx-junit5:4.0.16-alpha'
+    )
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform()
+    group = 'verification'
+    description = 'Runs the integration tests.'
+
+    testClassesDirs = sourceSets.e2eTest.output.classesDirs
+    classpath = sourceSets.e2eTest.runtimeClasspath
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+}
+
+check.dependsOn integrationTest
