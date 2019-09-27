@@ -2,6 +2,7 @@ package com.paulnogas.loganalyzer.view
 
 import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERNS_PRIORITY_ORDER
 import com.paulnogas.loganalyzer.HighlightPattern
+import com.paulnogas.loganalyzer.app.RuntimeConfig
 import com.paulnogas.loganalyzer.app.Styles
 import com.paulnogas.loganalyzer.controller.FileProcessor
 import com.paulnogas.loganalyzer.controller.SearchTextHandler
@@ -41,6 +42,7 @@ class StartupView : View("Log Analyzer") {
             addClass(Styles.blueButton)
             id = "openButton"
             action {
+                /*RuntimeConfig.loadConfig()*/
                 val file = chooseFile(filters = arrayOf(FileChooser.ExtensionFilter("Log files", "*.log", "*.txt")))
                 if (file.isNotEmpty()) {
                     runAsyncWithProgress {

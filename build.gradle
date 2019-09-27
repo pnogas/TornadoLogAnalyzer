@@ -10,6 +10,7 @@ buildscript {
     ext.slf4j_api_version = "1.7.28"
     ext.logback_classic_version = "1.2.3"
     ext.logback_core_version = "1.2.3"
+    ext.moshi_version = "1.8.0"
 
     repositories {
         mavenLocal()
@@ -66,7 +67,8 @@ dependencies {
             "io.reactivex.rxjava2:rxkotlin:$kxkotlin_version",
             "org.slf4j:slf4j-api:$slf4j_api_version",
             "ch.qos.logback:logback-classic:$logback_classic_version",
-            "ch.qos.logback:logback-core:$logback_core_version"
+            "ch.qos.logback:logback-core:$logback_core_version",
+            "com.squareup.moshi:moshi:$moshi_version"
     )
     testImplementation(
             "org.junit.jupiter:junit-jupiter-api:$junit_version",

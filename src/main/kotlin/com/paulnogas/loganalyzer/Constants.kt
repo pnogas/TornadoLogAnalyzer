@@ -4,7 +4,7 @@ import javafx.scene.paint.Color
 
 object Constants {
     val HIGHLIGHT_PATTERNS_PRIORITY_ORDER = listOf(
-            HighlightPattern("Common errors", Regex("exception|crashed|death|fatal|killed| f | e ", RegexOption.IGNORE_CASE), Color.PINK),
+            HighlightPattern("Common errors", Regex("exception|crashed|death|fatal|killed| f | e ", RegexOption.IGNORE_CASE), Color.PINK)
     )
     val HIGHLIGHT_PATTERN_NONE = HighlightPattern("", Regex(""), Color.WHITE)
 }
