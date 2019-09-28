@@ -1,8 +1,8 @@
 package com.paulnogas.loganalyzer.controller
 
-import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERNS_PRIORITY_ORDER
 import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERN_NONE
 import com.paulnogas.loganalyzer.HighlightPattern
+import com.paulnogas.loganalyzer.app.RuntimeConfig
 import com.paulnogas.loganalyzer.model.LineAndHighlight
 import tornadofx.Controller
 import java.io.File
@@ -21,7 +21,7 @@ class FileProcessor : Controller() {
     }
 
     private fun parseLine(line: String): LineAndHighlight? {
-        for (filter in HIGHLIGHT_PATTERNS_PRIORITY_ORDER) {
+        for (filter in RuntimeConfig.loadedHighlightPattern) {
             if (filter.regEx.containsMatchIn(line)) {
                 return LineAndHighlight(line, filter)
             }

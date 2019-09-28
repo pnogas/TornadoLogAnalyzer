@@ -1,20 +1,21 @@
 package com.paulnogas.loganalyzer.view
 
-import com.paulnogas.loganalyzer.Constants.HIGHLIGHT_PATTERNS_PRIORITY_ORDER
 import com.paulnogas.loganalyzer.HighlightPattern
 import com.paulnogas.loganalyzer.app.RuntimeConfig
 import com.paulnogas.loganalyzer.app.Styles
 import com.paulnogas.loganalyzer.controller.FileProcessor
 import com.paulnogas.loganalyzer.controller.SearchTextHandler
-import com.paulnogas.loganalyzer.logging.Util.getLogger
+import com.paulnogas.loganalyzer.events.ConfigChangedEvent
 import com.paulnogas.loganalyzer.model.*
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.layout.Priority
 import javafx.stage.FileChooser
 import tornadofx.*
+import java.io.File
 
-class StartupView : View("Log Analyzer") {
+class StartupView : Fragment("Log Analyzer") {
 
     private val controller: FileProcessor by inject()
     private val logListModel = LogListModel(LogsListHolder())
@@ -22,77 +23,98 @@ class StartupView : View("Log Analyzer") {
     private val searchTextModel = SearchTextModel(SearchTextHolder())
 
     var filteredMatches = emptyList<LineAndHighlight>()
-    private var checkedFilters = mutableSetOf<HighlightPattern>()
+    private var checkedHighlightBoxes = mutableSetOf<HighlightPattern>()
 
     private val searchTextHandler = SearchTextHandler(controller, logListModel)
 
-    override val root = vbox(20, Pos.TOP_CENTER) {
-        prefHeight = 600.0
-        prefWidth = 600.0
-        isCenterShape = true
-        label(filePathModel.modelFilePath)
-        makePatternCheckboxes(this)
-        textfield(searchTextModel.modelSearchText) {
-            promptText = "Type to filter"
-            textProperty().addListener { _, _, updatedText ->
-                searchTextHandler.onTextUpdated(updatedText)
-            }
-        }
-        button("Open") {
-            addClass(Styles.blueButton)
-            id = "openButton"
-            action {
-                /*RuntimeConfig.loadConfig()*/
-                val file = chooseFile(filters = arrayOf(FileChooser.ExtensionFilter("Log files", "*.log", "*.txt")))
-                if (file.isNotEmpty()) {
-                    runAsyncWithProgress {
-                        controller.process(file.first())
-                        filteredMatches = controller.filterPatternsAndSearch(checkedFilters, searchTextModel.modelSearchText.get())
-                    } ui {
-                        getLogger().debug("rebound on UI thread")
-                        filePathModel.rebind {
-                            item = FilePathHolder(file.first().toString())
-                        }
-                        logListModel.rebind {
-                            item = LogsListHolder(filteredMatches)
-                        }
-                    }
+    init {
+        subscribe<ConfigChangedEvent> {
+            // we need to re-parse the entire file since the old highlights are no more
+            runAsync {
+                checkedHighlightBoxes.clear()
+                val previouslyOpenedFile = filePathModel.modelFilePath.get()
+                if (previouslyOpenedFile.isNotEmpty()) {
+                    controller.process(File(previouslyOpenedFile))
+                    filteredMatches = controller.filterPatternsAndSearch(checkedHighlightBoxes, searchTextModel.modelSearchText.get())
+                }
+            } ui {
+                logListModel.rebind {
+                    item = LogsListHolder(filteredMatches)
                 }
             }
-        }
-        listview<LineAndHighlight>(logListModel.modelLogs) {
-            vgrow = Priority.ALWAYS
-            cellFormat {
-                style {
-                    text = it.text
-                    backgroundColor += it.highlightPattern.color
-                }
-            }
+            root.replaceChildren(createView())
         }
     }
 
-    private fun makePatternCheckboxes(parent: EventTarget) {
-        hbox(alignment = Pos.CENTER) {
-            for (filter in HIGHLIGHT_PATTERNS_PRIORITY_ORDER) {
-                checkbox(text = filter.displayString) {
-                    action {
-                        when {
-                            isSelected -> checkedFilters.add(filter)
-                            else -> checkedFilters.remove(filter)
-                        }
+    override var root = createView()
+
+    private fun createView(): Parent {
+        return vbox(20, Pos.TOP_CENTER) {
+            prefHeight = 600.0
+            prefWidth = 600.0
+            isCenterShape = true
+            label(filePathModel.modelFilePath)
+            buildHighlightCheckboxes(this)
+            textfield(searchTextModel.modelSearchText) {
+                promptText = "Type to filter"
+                textProperty().addListener { _, _, updatedText ->
+                    searchTextHandler.onTextUpdated(updatedText)
+                }
+            }
+            button("Open") {
+                addClass(Styles.blueButton)
+                id = "openButton"
+                action {
+                    val file = chooseFile(filters = arrayOf(FileChooser.ExtensionFilter("Log files", "*.log", "*.txt")))
+                    if (file.isNotEmpty()) {
                         runAsyncWithProgress {
-                            filteredMatches = controller.filterPatternsAndSearch(checkedFilters, searchTextModel.modelSearchText.get())
+                            controller.process(file.first())
+                            filteredMatches = controller.filterPatternsAndSearch(checkedHighlightBoxes, searchTextModel.modelSearchText.get())
                         } ui {
+                            filePathModel.rebind {
+                                item = FilePathHolder(file.first().toString())
+                            }
                             logListModel.rebind {
                                 item = LogsListHolder(filteredMatches)
                             }
                         }
                     }
                 }
-                rectangle {
-                    width = 10.0
-                    height = 10.0
-                    fill = filter.color
+            }
+            listview<LineAndHighlight>(logListModel.modelLogs) {
+                vgrow = Priority.ALWAYS
+                cellFormat {
+                    style {
+                        text = it.text
+                        backgroundColor += it.highlightPattern.color
+                    }
+                }
+            }
+        }
+    }
+
+    private fun buildHighlightCheckboxes(parent: EventTarget) {
+        flowpane {
+            hgap = 5.0
+            vgap = 5.0
+            for (filter in RuntimeConfig.loadedHighlightPattern) {
+                checkbox(text = filter.displayString) {
+                    text {
+                        background = filter.color.asBackground()
+                    }
+                    action {
+                        when {
+                            isSelected -> checkedHighlightBoxes.add(filter)
+                            else -> checkedHighlightBoxes.remove(filter)
+                        }
+                        runAsyncWithProgress {
+                            filteredMatches = controller.filterPatternsAndSearch(checkedHighlightBoxes, searchTextModel.modelSearchText.get())
+                        } ui {
+                            logListModel.rebind {
+                                item = LogsListHolder(filteredMatches)
+                            }
+                        }
+                    }
                 }
             }
         }.attachTo(parent)

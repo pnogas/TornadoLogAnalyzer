@@ -17,10 +17,9 @@ class SearchTextHandler(private val controller: FileProcessor, private val logLi
                 .subscribe {
                     it?.let {
                         logListModel.rebind {
-                            getLogger().debug("rebound on Rx thread")
                             item = LogsListHolder(controller.filterSearch(it))
                         }
-                    } ?: getLogger().error("Search string was somehow null!")
+                    } ?: getLogger().error("Search string was null due to library error!")
                 }
     }
 

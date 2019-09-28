@@ -13,7 +13,7 @@
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <!-- Daily rollover -->
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>log/MyExample.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>log/LogAnalyzer.%d{yyyy-MM-dd}.log</fileNamePattern>
       <!-- Keep 7 days' worth of history -->
       <maxHistory>7</maxHistory>
     </rollingPolicy>

@@ -1,18 +1,20 @@
 package com.paulnogas.loganalyzer.app
 
 import com.paulnogas.loganalyzer.logging.Util.getLogger
+import com.paulnogas.loganalyzer.view.MyWorkspace
 import com.paulnogas.loganalyzer.view.StartupView
 import javafx.application.Platform
 import javafx.scene.image.Image
 import javafx.stage.Stage
 import tornadofx.App
 import tornadofx.FX
+import tornadofx.UIComponent
 import tornadofx.setStageIcon
 
-class BaseApplication : App(StartupView::class, Styles::class) {
+class BaseApplication : App(MyWorkspace::class, Styles::class) {
 
     override fun start(stage: Stage) {
-        getLogger().debug("start")
+        getLogger().debug("App started")
         super.start(stage)
         setStageIcon(Image(resources.stream("/icon.png")))
         trayicon(resources.stream("/icon.png"), implicitExit = true) {
@@ -35,6 +37,16 @@ class BaseApplication : App(StartupView::class, Styles::class) {
                 }
             }
         }
-        getLogger().debug("end")
+    }
+
+    override fun stop() {
+        super.stop()
+        getLogger().debug("App stopped")
+    }
+
+    override fun onBeforeShow(view: UIComponent) {
+        with(workspace) {
+            dock<StartupView>()
+        }
     }
 }
