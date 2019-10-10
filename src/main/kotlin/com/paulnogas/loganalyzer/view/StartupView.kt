@@ -18,7 +18,7 @@ import java.io.File
 class StartupView : Fragment("Log Analyzer") {
 
     private val controller: FileProcessor by inject()
-    private val logListModel = LogListModel(LogsListHolder())
+    private val logListModel = LogListModel(LogsListHolder(controller.rawList))
     private val filePathModel = FilePathModel(FilePathHolder())
     private val searchTextModel = SearchTextModel(SearchTextHolder())
 
@@ -82,7 +82,7 @@ class StartupView : Fragment("Log Analyzer") {
                 }
             }
             listview<LineAndHighlight>(logListModel.modelLogs) {
-                vgrow = Priority.ALWAYS
+                vgrow = Priority.SOMETIMES
                 cellFormat {
                     style {
                         text = it.text

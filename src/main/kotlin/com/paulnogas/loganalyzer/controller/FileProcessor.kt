@@ -8,8 +8,8 @@ import tornadofx.Controller
 import java.io.File
 
 class FileProcessor : Controller() {
-    private var rawList: List<LineAndHighlight> = emptyList()
-    private var filteredList: List<LineAndHighlight> = emptyList()
+    internal var rawList: List<LineAndHighlight> = emptyList()
+    internal var filteredList: List<LineAndHighlight> = emptyList()
 
     fun process(file: File): List<LineAndHighlight> {
         rawList = file.useLines { sequence ->
