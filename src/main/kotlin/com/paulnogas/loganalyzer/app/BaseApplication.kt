@@ -24,7 +24,7 @@ class BaseApplication : App(MyWorkspace::class, Styles::class) {
         handleCommandLineParameters()
         super.start(stage)
         setStageIcon(Image(resources.stream("/icon.png")))
-        trayicon(resources.stream("/icon.png"), implicitExit = true) {
+        /*trayicon(resources.stream("/icon.png"), implicitExit = true) {
             setOnMouseClicked(fxThread = true) {
                 FX.primaryStage.show()
                 FX.primaryStage.toFront()
@@ -43,7 +43,7 @@ class BaseApplication : App(MyWorkspace::class, Styles::class) {
                     }
                 }
             }
-        }
+        }*/
     }
 
     private fun handleCommandLineParameters() {
